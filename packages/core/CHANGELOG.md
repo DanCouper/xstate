@@ -1,5 +1,66 @@
 # xstate
 
+## 4.11.0
+
+### Minor Changes
+
+- [`2c75ab82`](https://github.com/davidkpiano/xstate/commit/2c75ab822e49cb1a23c1e14eb7bd04548ab143eb) [#1219](https://github.com/davidkpiano/xstate/pull/1219) Thanks [@davidkpiano](https://github.com/davidkpiano)! - The resolved value of the `invoke.data` property is now available in the "invoke meta" object, which is passed as the 3rd argument to the service creator in `options.services`. This will work for all types of invoked services now, including promises, observables, and callbacks.
+
+  ```js
+  const machine = createMachine({
+    initial: 'pending',
+    context: {
+      id: 42
+    },
+    states: {
+      pending: {
+        invoke: {
+          src: 'fetchUser',
+          data: {
+            userId: (context) => context.id
+          },
+          onDone: 'success'
+        }
+      },
+      success: {
+        type: 'final'
+      }
+    }
+  },
+  {
+    services: {
+      fetchUser: (ctx, _, { data }) => {
+        return fetch(`some/api/user/${data.userId}`)
+          .then(response => response.json());
+      }
+    }
+  }
+  ```
+
+* [`a6c78ae9`](https://github.com/davidkpiano/xstate/commit/a6c78ae960acba36b61a41a5d154ea59908010b0) [#1249](https://github.com/davidkpiano/xstate/pull/1249) Thanks [@davidkpiano](https://github.com/davidkpiano)! - New property introduced for eventless (transient) transitions: **`always`**, which indicates a transition that is always taken when in that state. Empty string transition configs for [transient transitions](https://xstate.js.org/docs/guides/transitions.html#transient-transitions) are deprecated in favor of `always`:
+
+  ```diff
+  // ...
+  states: {
+    playing: {
+  +   always: [
+  +     { target: 'win', cond: 'didPlayerWin' },
+  +     { target: 'lose', cond: 'didPlayerLose' },
+  +   ],
+      on: {
+        // ⚠️ Deprecation warning
+  -     '': [
+  -       { target: 'win', cond: 'didPlayerWin' },
+  -       { target: 'lose', cond: 'didPlayerLose' },
+  -     ]
+      }
+    }
+  }
+  // ...
+  ```
+
+  The old empty string syntax (`'': ...`) will continue to work until V5.
+
 ## 4.10.0
 
 ### Minor Changes
